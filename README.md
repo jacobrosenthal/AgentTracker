@@ -16,7 +16,7 @@ Skynet uuid and token:
 http://skynet.im
 
 ##Use
-Edit the file for your uuid and token to skynet in the index.js and hm-skynet.js. Load up the app.
+Edit index.js and hm-skynet.js for your UUID and TOKEN. Load up the app.
 
 HR En will attempt to detect your ble heartrate reader like:
 http://www.amazon.com/Wahoo-TICKR-Monitor-iPhone-Android/dp/B00INQVYZ8
