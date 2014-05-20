@@ -3,7 +3,7 @@ AgentTracker
 
 BLE HeartRate monitor to Skynet.im over Phonegap iOS and Android tested
 
-=Dependencies=
+#Dependencies
 Cordova plugins
 ```bash
 cordova plugin add org.apache.cordova.console
@@ -15,7 +15,7 @@ cordova plugin add https://github.com/christocracy/cordova-plugin-background-geo
 Skynet uuid and token:
 http://skynet.im
 
-=Use=
+#Use
 Edit the file for your uuid and token to skynet in the index.js and hm-skynet.js. Load up the app.
 
 HR En will attempt to detect your ble heartrate reader like:
@@ -28,5 +28,5 @@ GEO En will enable BACKGROUND geo updates. These can be very infrequenct in orde
 
 GEO Query will do a geo request, will send that data to skynet, and will pop an alert with the data. These manual queries are handy because while standing still you wont get any additional geolocations otherwise.
 
-=View Data=
+#View Data
 Check out http://github.com/zgiles/heart/ for an html Agent Viewer. Input your UUID(s) to track and load it up in any modern browser. As soon as it receives a geolocation request it should add a heart marker with your Agent's live heartrate data!
