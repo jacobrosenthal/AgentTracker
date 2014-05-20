@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 var app = {
     // Application Constructor
     initialize: function() {
@@ -34,7 +35,81 @@ var app = {
     // function, we must explicity call 'app.receivedEvent(...);'
     onDeviceReady: function() {
         app.receivedEvent('deviceready');
+        document.getElementById("button1").addEventListener('touchstart', app.onButton1Click);
+        document.getElementById("button2").addEventListener('touchstart', app.onButton2Click);
+        document.getElementById("button3").addEventListener('touchstart', app.onButton3Click);
     },
+    
+    onButton1Click: function() {
+        console.log('clicked button1');
+        bluetoothle.initialize(initializeSuccess, initializeError);
+    },
+
+    onButton2Click: function() {
+        console.log('clicked button2');
+        window.navigator.geolocation.getCurrentPosition(function(location) {
+                                                        console.log('Location from Phonegap');
+                                                        });
+        
+        var bgGeo = window.plugins.backgroundGeoLocation;
+        
+        /**
+         * This callback will be executed every time a geolocation is recorded in the background.
+         */
+        var callbackFn = function(location) {
+            
+            var UUID = "77c341d1-df11-11e3-847b-4b062af1e053";
+            var TOKEN = "ptgfa8520rnyu8frotsz889tyy7j5rk9";
+            
+            var send = "lat=" + location.latitude + "&long=" + location.longitude + "&alt=" + location.altitude
+            + "&acc=" + location.accuracy + "&altcc=" + location.altitudeAccuracy + "&heading=" + location.heading
+            + "&speed=" + location.speed;
+            
+            console.log(send);
+            
+            var r = new XMLHttpRequest();
+            r.open("POST", "http://skynet.im/data/"+UUID, true);
+            r.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            r.setRequestHeader("Content-length", send.length);
+            r.setRequestHeader("skynet_auth_uuid",UUID);
+            r.setRequestHeader("skynet_auth_token",TOKEN);
+            
+            r.onreadystatechange = function () {
+                if (r.readyState != 4 || r.status != 200) return;
+                console.log("Success: " + r.responseText);
+            };
+            
+            r.send(send);
+
+            bgGeo.finish();
+        };
+        
+        var failureFn = function(error) {
+            console.log('BackgroundGeoLocation error');
+        }
+        
+        // BackgroundGeoLocation is highly configurable.
+        bgGeo.configure(callbackFn, failureFn, {
+                        url: null,
+                        params: null,
+                        desiredAccuracy: 10,
+                        stationaryRadius: 20,
+                        distanceFilter: 30,
+                        debug: true // <-- enable this hear sounds for background-geolocation life-cycle.
+                        });
+        
+        // Turn ON the background-geolocation system.  The user will be tracked whenever they suspend the app.
+        bgGeo.start();
+    },
+    
+    onButton3Click: function() {
+        console.log('clicked button3');
+        
+        navigator.geolocation.getCurrentPosition(onSuccess, onError);
+    },
+    
+    
+    
     // Update DOM on a Received Event
     receivedEvent: function(id) {
         var parentElement = document.getElementById(id);
@@ -47,3 +122,41 @@ var app = {
         console.log('Received Event: ' + id);
     }
 };
+
+// onSuccess Callback
+//   This method accepts a `Position` object, which contains
+//   the current GPS coordinates
+//
+var onSuccess = function(position) {
+
+    var UUID = "77c341d1-df11-11e3-847b-4b062af1e053";
+    var TOKEN = "ptgfa8520rnyu8frotsz889tyy7j5rk9";
+    
+    var send = "lat=" + position.coords.latitude + "&long=" + position.coords.longitude + "&alt=" + position.coords.altitude
+    + "&acc=" + position.coords.accuracy + "&altcc=" + position.coords.altitudeAccuracy + "&heading=" + position.coords.heading
+    + "&speed=" + position.coords.speed;
+
+    var r = new XMLHttpRequest();
+    r.open("POST", "http://skynet.im/data/"+UUID, true);
+    r.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    r.setRequestHeader("Content-length", send.length);
+    r.setRequestHeader("skynet_auth_uuid",UUID);
+    r.setRequestHeader("skynet_auth_token",TOKEN);
+    
+    r.onreadystatechange = function () {
+        if (r.readyState != 4 || r.status != 200) return;
+        console.log("Success: " + r.responseText);
+    };
+    
+    r.send(send);
+
+    alert(send);
+    
+};
+
+// onError Callback receives a PositionError object
+//
+function onError(error) {
+    alert('code: '    + error.code    + '\n' +
+          'message: ' + error.message + '\n');
+}

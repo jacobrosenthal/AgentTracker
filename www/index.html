@@ -32,8 +32,19 @@
             <div id="deviceready" class="blink">
                 <p class="event listening">Connecting to Device</p>
                 <p class="event received">Device is Ready</p>
+                <p><a style="font-size : xx-large;"  id="button1" href="#">HR En</a></p>
+                <p><a style="font-size : xx-large;"  id="button2" href="#">GEO En</a></p>
+                <p><a style="font-size : xx-large;"  id="button3" href="#">GEO Query</a></p>
+
+                <div id="result"></div>
             </div>
         </div>
+        <script type="text/javascript">
+            window.onerror = function(message, url, lineNumber) {
+                console.log("Error: "+message+" in "+url+" at line "+lineNumber);
+            }
+        </script>
+        <script type="text/javascript" src="js/hm-skynet.js"></script>
         <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript">
