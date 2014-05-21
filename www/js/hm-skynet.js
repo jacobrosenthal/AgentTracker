@@ -1,4 +1,4 @@
-var addressKey = "hr7";
+var addressKey = "address";
 
 var heartRateServiceUuid = "180d";
 var heartRateMeasurementCharacteristicUuid = "2a37";
@@ -20,7 +20,11 @@ function initializeSuccess(obj)
     
     if (obj.status == "initialized")
     {
-        var address = window.localStorage.getItem(addressKey);
+	// if address os null from config, then get it from saved item
+	if (address == null) {
+		address = window.localStorage.getItem(addressKey);
+	}
+	// if saved item is still null, then search for one
         if (address == null)
         {
             console.log("Bluetooth initialized successfully, starting scan for heart rate devices.");
@@ -479,8 +483,8 @@ function subscribeSuccess(obj)
         }
         console.log("Heart Rate: " + hr);
 
-        var UUID = "77c341d1-df11-11e3-847b-4b062af1e053";
-        var TOKEN = "ptgfa8520rnyu8frotsz889tyy7j5rk9";
+	//var UUID = "fb6d9131-df01-11e3-847b-4b062af1e053";
+	//var TOKEN = "7dd62kbi8v45nrk9qrv2g8afz1kk2o6r";
 
         var div = document.getElementById('result');
         div.innerHTML = 'Loading...';
@@ -490,7 +494,6 @@ function subscribeSuccess(obj)
         var r = new XMLHttpRequest();
         r.open("POST", "http://skynet.im/data/"+UUID, true);
         r.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        r.setRequestHeader("Content-length", send.length);
         r.setRequestHeader("skynet_auth_uuid",UUID);
         r.setRequestHeader("skynet_auth_token",TOKEN);
 
