@@ -483,9 +483,6 @@ function subscribeSuccess(obj)
         }
         console.log("Heart Rate: " + hr);
 
-	//var UUID = "fb6d9131-df01-11e3-847b-4b062af1e053";
-	//var TOKEN = "7dd62kbi8v45nrk9qrv2g8afz1kk2o6r";
-
         var div = document.getElementById('result');
         div.innerHTML = 'Loading...';
 
