@@ -116,36 +116,6 @@ function connectDevice(address)
     connectTimer = setTimeout(connectTimeout, 5000);
 }
 
-function connectSuccess(obj)
-{
-    console.log("connectSuccess");
-    
-    if (obj.status == "connected")
-    {
-        console.log("Connected to : " + obj.name + " - " + obj.address);
-
-        clearConnectTimeout();
-
-        tempDisconnectDevice();
-
-    }
-    else if (obj.status == "connecting")
-    {
-        console.log("Connecting to : " + obj.name + " - " + obj.address);
-    }
-    else
-    {
-        console.log("Unexpected connect status: " + obj.status);
-        clearConnectTimeout();
-    }
-}
-
-function connectError(obj)
-{
-    console.log("Connect error: " + obj.error + " - " + obj.message);
-    clearConnectTimeout();
-}
-
 function connectTimeout()
 {
     console.log("Connection timed out");
@@ -160,48 +130,13 @@ function clearConnectTimeout()
     }
 }
 
-function tempDisconnectDevice()
-{
-    console.log("Disconnecting from device to test reconnect");
-    bluetoothle.disconnect(tempDisconnectSuccess, tempDisconnectError);
-}
-
-function tempDisconnectSuccess(obj)
-{
-    if (obj.status == "disconnected")
-    {
-        console.log("Temp disconnect device and reconnecting in 1 second. Instantly reconnecting can cause issues");
-        setTimeout(reconnect, 1000);
-    }
-    else if (obj.status == "disconnecting")
-    {
-        console.log("Temp disconnecting device");
-    }
-    else
-    {
-        console.log("Unexpected temp disconnect status: " + obj.status);
-    }
-}
-
-function tempDisconnectError(obj)
-{
-    console.log("Temp disconnect error: " + obj.error + " - " + obj.message);
-}
-
-function reconnect()
-{
-    console.log("Reconnecting with 5 second timeout");
-    bluetoothle.reconnect(reconnectSuccess, reconnectError);
-    reconnectTimer = setTimeout(reconnectTimeout, 5000);
-}
-
-function reconnectSuccess(obj)
+function connectSuccess(obj)
 {
     if (obj.status == "connected")
     {
         console.log("Reconnected to : " + obj.name + " - " + obj.address);
         
-        clearReconnectTimeout();
+        clearConnectTimeout();
         
         if (window.device.platform == iOSPlatform)
         {
@@ -219,6 +154,10 @@ function reconnectSuccess(obj)
     {
         console.log("Reconnecting to : " + obj.name + " - " + obj.address);
     }
+    else if (obj.status == "disconnected")
+    {
+        bluetoothle.reconnect(connectSuccess, connectError);
+    }
     else
     {
         console.log("Unexpected reconnect status: " + obj.status);
@@ -226,24 +165,10 @@ function reconnectSuccess(obj)
     }
 }
 
-function reconnectError(obj)
+function connectError(obj)
 {
     console.log("Reconnect error: " + obj.error + " - " + obj.message);
     disconnectDevice();
-}
-
-function reconnectTimeout()
-{
-    console.log("Reconnection timed out");
-}
-
-function clearReconnectTimeout()
-{
-    console.log("Clearing reconnect timeout");
-    if (reconnectTimer != null)
-    {
-        clearTimeout(reconnectTimer);
-    }
 }
 
 function servicesHeartSuccess(obj)
