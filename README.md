@@ -10,8 +10,7 @@ cordova plugin add org.apache.cordova.console
 cordova plugin add org.apache.cordova.device
 cordova plugin add https://github.com/randdusing/BluetoothLE.git
 cordova plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-geolocation.git
-cordova plugin add https://github.com/christocracy/cordova-plugin-background-geolocation.git
-(( OR a more updated version on a local copy until it's committed upstream )) cordova plugin add ~/git/cordova-plugin-background-geolocation/
+cordova plugin add https://github.com/zgiles/cordova-plugin-background-geolocation.git
 ```
 Skynet uuid and token:
 http://skynet.im
