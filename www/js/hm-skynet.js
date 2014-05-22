@@ -132,10 +132,19 @@ function clearConnectTimeout()
 
 function connectSuccess(obj)
 {
+    var statusdiv = document.getElementById('device-status');
+    statusdiv.innerHTML = "connecting";
+
     if (obj.status == "connected")
     {
+
+        statusdiv.innerHTML = "connected";
+
         console.log("Reconnected to : " + obj.name + " - " + obj.address);
         
+        var div = document.getElementById('device-name');
+        div.innerHTML = obj.name;
+
         clearConnectTimeout();
         
         if (window.device.platform == iOSPlatform)
@@ -160,6 +169,8 @@ function connectSuccess(obj)
     }
     else
     {
+        statusdiv.innerHTML = "connecting";
+
         console.log("Unexpected reconnect status: " + obj.status);
         disconnectDevice();
     }
@@ -354,6 +365,9 @@ function readSuccess(obj)
     {
         var bytes = bluetoothle.encodedStringToBytes(obj.value);
         console.log("Battery level: " + bytes[0]);
+
+        var div = document.getElementById('device-battery');
+        div.innerHTML = bytes[0] + "%";
         
         console.log("Subscribing to heart rate for 5 seconds");
         var paramsObj = {"serviceUuid":heartRateServiceUuid, "characteristicUuid":heartRateMeasurementCharacteristicUuid};
