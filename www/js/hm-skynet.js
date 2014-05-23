@@ -352,6 +352,34 @@ function discoverError(obj)
     disconnectDevice();
 }
 
+function updateBatteryDisplay(data)
+{
+    var div = document.getElementById('device-battery');
+    div.innerHTML = data + "%";
+}
+
+function readBatteryLevel2()
+{
+    console.log("Reading battery level");
+    var paramsObj = {"serviceUuid":batteryServiceUuid, "characteristicUuid":batteryLevelCharacteristicUuid};
+    bluetoothle.read(readBatteryLevelSuccess, readBatteryLevelError, paramsObj);
+}
+
+function readBatteryLevelError()
+{
+    console.log("Read error: " + obj.error + " - " + obj.message);
+}
+
+function readBatteryLevelSuccess(obj)
+{
+    if (obj.status == "read")
+    {
+        var bytes = bluetoothle.encodedStringToBytes(obj.value);
+        console.log("Battery level: " + bytes[0]);
+        updateBatteryDisplay(bytes[0]);
+    }
+}
+
 function readBatteryLevel()
 {
     console.log("Reading battery level");
@@ -365,9 +393,7 @@ function readSuccess(obj)
     {
         var bytes = bluetoothle.encodedStringToBytes(obj.value);
         console.log("Battery level: " + bytes[0]);
-
-        var div = document.getElementById('device-battery');
-        div.innerHTML = bytes[0] + "%";
+        updateBatteryDisplay(bytes[0]);
         
         console.log("Subscribing to heart rate for 5 seconds");
         var paramsObj = {"serviceUuid":heartRateServiceUuid, "characteristicUuid":heartRateMeasurementCharacteristicUuid};
