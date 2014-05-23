@@ -110,24 +110,9 @@ function stopScanError(obj)
 
 function connectDevice(address)
 {
-    console.log("Begining connection to: " + address + " with 5 second timeout");
+    console.log("Begining connection to: " + address);
     var paramsObj = {"address":address};
     bluetoothle.connect(connectSuccess, connectError, paramsObj);
-    connectTimer = setTimeout(connectTimeout, 5000);
-}
-
-function connectTimeout()
-{
-    console.log("Connection timed out");
-}
-
-function clearConnectTimeout()
-{
-    console.log("Clearing connect timeout");
-    if (connectTimer != null)
-    {
-        clearTimeout(connectTimer);
-    }
 }
 
 function connectSuccess(obj)
@@ -144,8 +129,6 @@ function connectSuccess(obj)
         
         var div = document.getElementById('device-name');
         div.innerHTML = obj.name;
-
-        clearConnectTimeout();
         
         if (window.device.platform == iOSPlatform)
         {
@@ -360,24 +343,14 @@ function updateBatteryDisplay(data)
 
 function readBatteryLevel2()
 {
+    bluetoothle.isConnected(isConnectedCallback);
+}
+
+function isConnectedCallback()
+{
     console.log("Reading battery level");
     var paramsObj = {"serviceUuid":batteryServiceUuid, "characteristicUuid":batteryLevelCharacteristicUuid};
-    bluetoothle.read(readBatteryLevelSuccess, readBatteryLevelError, paramsObj);
-}
-
-function readBatteryLevelError()
-{
-    console.log("Read error: " + obj.error + " - " + obj.message);
-}
-
-function readBatteryLevelSuccess(obj)
-{
-    if (obj.status == "read")
-    {
-        var bytes = bluetoothle.encodedStringToBytes(obj.value);
-        console.log("Battery level: " + bytes[0]);
-        updateBatteryDisplay(bytes[0]);
-    }
+    bluetoothle.read(subscribeSuccess, subscribeError, paramsObj);
 }
 
 function readBatteryLevel()
@@ -395,10 +368,9 @@ function readSuccess(obj)
         console.log("Battery level: " + bytes[0]);
         updateBatteryDisplay(bytes[0]);
         
-        console.log("Subscribing to heart rate for 5 seconds");
+        console.log("Subscribing to heart rate");
         var paramsObj = {"serviceUuid":heartRateServiceUuid, "characteristicUuid":heartRateMeasurementCharacteristicUuid};
         bluetoothle.subscribe(subscribeSuccess, subscribeError, paramsObj);
-        // setTimeout(unsubscribeDevice, 5000);
     }
     else
     {
@@ -415,58 +387,66 @@ function readError(obj)
 
 function subscribeSuccess(obj)
 {
-    if (obj.status == "subscribedResult")
+    if (obj.status == "read" )
     {
-        console.log("Subscription data received");
-        
-        //Parse array of int32 into uint8
-        var bytes = bluetoothle.encodedStringToBytes(obj.value);
-        
-        //Check for data
-        if (bytes.length == 0)
+        if(obj.characteristicUuid == batteryLevelCharacteristicUuid)
         {
-            console.log("Subscription result had zero length data");
-            return;
-        }
-        
-        //Get the first byte that contains flags
-        var flag = bytes[0];
-        
-        //Check if u8 or u16 and get heart rate
-        var hr;
-        if ((flag & 0x01) == 1)
-        {
-            var u16bytes = bytes.buffer.slice(1, 3);
-            var u16 = new Uint16Array(u16bytes)[0];
-            hr = u16;
+            var bytes = bluetoothle.encodedStringToBytes(obj.value);
+            console.log("Battery level: " + bytes[0]);
+            updateBatteryDisplay(bytes[0]);
         }
         else
         {
-            var u8bytes = bytes.buffer.slice(1, 2);
-            var u8 = new Uint8Array(u8bytes)[0];
-            hr = u8;
+            console.log("Subscription data received");
+            
+            //Parse array of int32 into uint8
+            var bytes = bluetoothle.encodedStringToBytes(obj.value);
+            
+            //Check for data
+            if (bytes.length == 0)
+            {
+                console.log("Subscription result had zero length data");
+                return;
+            }
+            
+            //Get the first byte that contains flags
+            var flag = bytes[0];
+            
+            //Check if u8 or u16 and get heart rate
+            var hr;
+            if ((flag & 0x01) == 1)
+            {
+                var u16bytes = bytes.buffer.slice(1, 3);
+                var u16 = new Uint16Array(u16bytes)[0];
+                hr = u16;
+            }
+            else
+            {
+                var u8bytes = bytes.buffer.slice(1, 2);
+                var u8 = new Uint8Array(u8bytes)[0];
+                hr = u8;
+            }
+            console.log("Heart Rate: " + hr);
+
+            var div = document.getElementById('result');
+            div.innerHTML = 'Loading...';
+
+            var send = "heartrate="+ hr;
+
+            var r = new XMLHttpRequest();
+            r.open("POST", "http://skynet.im/data/"+UUID, true);
+            r.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            r.setRequestHeader("skynet_auth_uuid",UUID);
+            r.setRequestHeader("skynet_auth_token",TOKEN);
+
+            r.onreadystatechange = function () {
+                if (r.readyState != 4 || r.status != 200) return;
+                console.log("Success: " + r.responseText);
+                div.innerHTML = r.responseText;
+            };
+
+            r.send(send);
         }
-        console.log("Heart Rate: " + hr);
-
-        var div = document.getElementById('result');
-        div.innerHTML = 'Loading...';
-
-        var send = "heartrate="+ hr;
-
-        var r = new XMLHttpRequest();
-        r.open("POST", "http://skynet.im/data/"+UUID, true);
-        r.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        r.setRequestHeader("skynet_auth_uuid",UUID);
-        r.setRequestHeader("skynet_auth_token",TOKEN);
-
-        r.onreadystatechange = function () {
-            if (r.readyState != 4 || r.status != 200) return;
-            console.log("Success: " + r.responseText);
-            div.innerHTML = r.responseText;
-        };
-
-        r.send(send);
-
     }
     else if (obj.status == "subscribed")
     {
