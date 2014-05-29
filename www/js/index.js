@@ -28,7 +28,7 @@ var app = {
     // 'load', 'deviceready', 'offline', and 'online'.
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
-        document.addEventListener("resume", readBatteryLevel2, false);
+        document.addEventListener("resume", readBatteryLevel, false);
     },
     // deviceready Event Handler
     //

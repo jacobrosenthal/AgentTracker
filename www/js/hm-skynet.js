@@ -110,24 +110,9 @@ function stopScanError(obj)
 
 function connectDevice(address)
 {
-    console.log("Begining connection to: " + address + " with 5 second timeout");
+    console.log("Begining connection to: " + address);
     var paramsObj = {"address":address};
     bluetoothle.connect(connectSuccess, connectError, paramsObj);
-    connectTimer = setTimeout(connectTimeout, 5000);
-}
-
-function connectTimeout()
-{
-    console.log("Connection timed out");
-}
-
-function clearConnectTimeout()
-{
-    console.log("Clearing connect timeout");
-    if (connectTimer != null)
-    {
-        clearTimeout(connectTimer);
-    }
 }
 
 function connectSuccess(obj)
@@ -137,15 +122,12 @@ function connectSuccess(obj)
 
     if (obj.status == "connected")
     {
-
         statusdiv.innerHTML = "connected";
 
-        console.log("Reconnected to : " + obj.name + " - " + obj.address);
+        console.log("Connected to : " + obj.name + " - " + obj.address);
         
         var div = document.getElementById('device-name');
         div.innerHTML = obj.name;
-
-        clearConnectTimeout();
         
         if (window.device.platform == iOSPlatform)
         {
@@ -161,7 +143,7 @@ function connectSuccess(obj)
     }
     else if (obj.status == "connecting")
     {
-        console.log("Reconnecting to : " + obj.name + " - " + obj.address);
+        console.log("Connecting to : " + obj.name + " - " + obj.address);
     }
     else if (obj.status == "disconnected")
     {
@@ -223,13 +205,19 @@ function characteristicsHeartSuccess(obj)
         var characteristicUuids = obj.characteristicUuids;
         for (var i = 0; i < characteristicUuids.length; i++)
         {
-            console.log("Heart characteristics found, now discovering descriptor");
+            console.log("Heart characteristics found, subscribing");
             var characteristicUuid = characteristicUuids[i];
             
             if (characteristicUuid == heartRateMeasurementCharacteristicUuid)
             {
+                console.log("Subscribing to heart rate");
                 var paramsObj = {"serviceUuid":heartRateServiceUuid, "characteristicUuid":heartRateMeasurementCharacteristicUuid};
-                bluetoothle.descriptors(descriptorsHeartSuccess, descriptorsHeartError, paramsObj);
+                bluetoothle.subscribe(subscribeSuccess, subscribeError, paramsObj);
+
+                console.log("Discovering battery service");
+                var paramsObj2 = {"serviceUuids":[batteryServiceUuid]};
+                bluetoothle.services(servicesBatterySuccess, servicesBatteryError, paramsObj2);
+
                 return;
             }
         }
@@ -245,27 +233,6 @@ function characteristicsHeartSuccess(obj)
 function characteristicsHeartError(obj)
 {
     console.log("Characteristics heart error: " + obj.error + " - " + obj.message);
-    disconnectDevice();
-}
-
-function descriptorsHeartSuccess(obj)
-{
-    if (obj.status == "discoveredDescriptors")
-    {
-        console.log("Discovered heart descriptors, now discovering battery service");
-        var paramsObj = {"serviceUuids":[batteryServiceUuid]};
-        bluetoothle.services(servicesBatterySuccess, servicesBatteryError, paramsObj);
-    }
-    else
-    {
-        console.log("Unexpected descriptors heart status: " + obj.status);
-        disconnectDevice();
-    }
-}
-
-function descriptorsHeartError(obj)
-{
-    console.log("Descriptors heart error: " + obj.error + " - " + obj.message);
     disconnectDevice();
 }
 
@@ -338,6 +305,10 @@ function discoverSuccess(obj)
         console.log("Discovery completed");
         
         readBatteryLevel();
+
+        console.log("Subscribing to heart rate");
+        var paramsObj = {"serviceUuid":heartRateServiceUuid, "characteristicUuid":heartRateMeasurementCharacteristicUuid};
+        bluetoothle.subscribe(subscribeSuccess, subscribeError, paramsObj);
     }
     else
     {
@@ -358,28 +329,6 @@ function updateBatteryDisplay(data)
     div.innerHTML = data + "%";
 }
 
-function readBatteryLevel2()
-{
-    console.log("Reading battery level");
-    var paramsObj = {"serviceUuid":batteryServiceUuid, "characteristicUuid":batteryLevelCharacteristicUuid};
-    bluetoothle.read(readBatteryLevelSuccess, readBatteryLevelError, paramsObj);
-}
-
-function readBatteryLevelError()
-{
-    console.log("Read error: " + obj.error + " - " + obj.message);
-}
-
-function readBatteryLevelSuccess(obj)
-{
-    if (obj.status == "read")
-    {
-        var bytes = bluetoothle.encodedStringToBytes(obj.value);
-        console.log("Battery level: " + bytes[0]);
-        updateBatteryDisplay(bytes[0]);
-    }
-}
-
 function readBatteryLevel()
 {
     console.log("Reading battery level");
@@ -393,12 +342,7 @@ function readSuccess(obj)
     {
         var bytes = bluetoothle.encodedStringToBytes(obj.value);
         console.log("Battery level: " + bytes[0]);
-        updateBatteryDisplay(bytes[0]);
-        
-        console.log("Subscribing to heart rate for 5 seconds");
-        var paramsObj = {"serviceUuid":heartRateServiceUuid, "characteristicUuid":heartRateMeasurementCharacteristicUuid};
-        bluetoothle.subscribe(subscribeSuccess, subscribeError, paramsObj);
-        // setTimeout(unsubscribeDevice, 5000);
+        updateBatteryDisplay(bytes[0]);        
     }
     else
     {
@@ -482,58 +426,6 @@ function subscribeSuccess(obj)
 function subscribeError(msg)
 {
     console.log("Subscribe error: " + obj.error + " - " + obj.message);
-    disconnectDevice();
-}
-
-function unsubscribeDevice()
-{
-    console.log("Unsubscribing heart service");
-    var paramsObj = {"serviceUuid":heartRateServiceUuid, "characteristicUuid":heartRateMeasurementCharacteristicUuid};
-    bluetoothle.unsubscribe(unsubscribeSuccess, unsubscribeError, paramsObj);
-}
-
-function unsubscribeSuccess(obj)
-{
-    if (obj.status == "unsubscribed")
-    {
-        console.log("Unsubscribed device");
-        
-        console.log("Reading client configuration descriptor");
-        var paramsObj = {"serviceUuid":heartRateServiceUuid, "characteristicUuid":heartRateMeasurementCharacteristicUuid, "descriptorUuid":clientCharacteristicConfigDescriptorUuid};
-        bluetoothle.readDescriptor(readDescriptorSuccess, readDescriptorError, paramsObj);
-    }
-    else
-    {
-        console.log("Unexpected unsubscribe status: " + obj.status);
-        disconnectDevice();
-    }
-}
-
-function unsubscribeError(obj)
-{
-    console.log("Unsubscribe error: " + obj.error + " - " + obj.message);
-    disconnectDevice();
-}
-
-function readDescriptorSuccess(obj)
-{
-    if (obj.status == "readDescriptor")
-    {
-        var bytes = bluetoothle.encodedStringToBytes(obj.value);
-        var u16Bytes = new Uint16Array(bytes.buffer);
-        console.log("Read descriptor value: " + u16Bytes[0]);
-        disconnectDevice();
-    }
-    else
-    {
-        console.log("Unexpected read descriptor status: " + obj.status);
-        disconnectDevice();
-    }
-}
-
-function readDescriptorError(obj)
-{
-    console.log("Read Descriptor error: " + obj.error + " - " + obj.message);
     disconnectDevice();
 }
 
