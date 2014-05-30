@@ -29,6 +29,9 @@ var app = {
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
         document.addEventListener("resume", readBatteryLevel, false);
+        document.getElementById("button1").addEventListener('touchstart', app.onButton1Click);
+        document.getElementById("button2").addEventListener('touchstart', app.onButton2Click);
+        document.getElementById("button3").addEventListener('touchstart', app.onButton3Click);
     },
     // deviceready Event Handler
     //
@@ -36,9 +39,13 @@ var app = {
     // function, we must explicity call 'app.receivedEvent(...);'
     onDeviceReady: function() {
         app.receivedEvent('deviceready');
-        document.getElementById("button1").addEventListener('touchstart', app.onButton1Click);
-        document.getElementById("button2").addEventListener('touchstart', app.onButton2Click);
-        document.getElementById("button3").addEventListener('touchstart', app.onButton3Click);
+        var showSettingsByDefault = false;
+        if (showSettingsByDefault) {
+            console.log('showing settings');
+            $('#settingsModal').addClass('active');
+        } else {
+            console.log('not showing')
+        }
     },
     
     onButton1Click: function() {
@@ -72,8 +79,8 @@ var app = {
             var r = new XMLHttpRequest();
             r.open("POST", "http://skynet.im/data/"+UUID, true);
             r.setRequestHeader("Content-type", "application/json");
-	    r.setRequestHeader("skynet_auth_uuid",UUID);
-	    r.setRequestHeader("skynet_auth_token",TOKEN);
+    	    r.setRequestHeader("skynet_auth_uuid",UUID);
+    	    r.setRequestHeader("skynet_auth_token",TOKEN);
             
             r.onreadystatechange = function () {
                 if (r.readyState != 4 || r.status != 200) return;
@@ -101,7 +108,7 @@ var app = {
                         stationaryRadius: 20,
                         distanceFilter: 30,
                         debug: true // <-- enable this hear sounds for background-geolocation life-cycle.
-                        });
+                        });                           // on IOS you also need to add Audio capability in xcode
         
         // Turn ON the background-geolocation system.  The user will be tracked whenever they suspend the app.
         bgGeo.start();
@@ -115,12 +122,12 @@ var app = {
     	y.ontimeout = function() { console.log('XHR timed out'); }
     	y.open("GET", "http://skynet.im/ipaddress", true);
     	y.onreadystatechange = function () {
-        if (y.readyState == 4 && y.status == 200) {
- 	       console.log("Success: " + y.responseText);
-	} else { 
- 		console.log("error " + y.status ); return;
-	}
-    	};
+            if (y.readyState == 4 && y.status == 200) {
+     	       console.log("Success: " + y.responseText);
+        	} else { 
+         		console.log("error " + y.status ); return;
+        	}
+        };
     
     	y.send("");
 
@@ -183,6 +190,6 @@ var onSuccess = function(position) {
 
 // onError Callback receives a PositionError object
 //
-function onError(error) {
+var onError = function(error) {
     console.log('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
 }
