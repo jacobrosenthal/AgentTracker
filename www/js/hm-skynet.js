@@ -126,8 +126,8 @@ function connectSuccess(obj)
 
         console.log("Connected to : " + obj.name + " - " + obj.address);
         
-        var div = document.getElementById('device-name');
-        div.innerHTML = obj.name;
+        // var div = document.getElementById('device-name');
+        // div.innerHTML = obj.name;
         
         if (window.device.platform == iOSPlatform)
         {
